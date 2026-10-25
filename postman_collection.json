@@ -1,0 +1,132 @@
+{
+  "info": {
+    "_postman_id": "7d9b9a62-9e53-4c9b-b891-9876543210ab",
+    "name": "Library API - Phase 2 (67160179)",
+    "description": "Postman Collection ครบทุก Endpoint พร้อมผลลัพธ์ตัวอย่าง",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get All Books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:3000/api/v1/books", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "v1", "books"] }
+      },
+      "response": [
+        {
+          "name": "200 Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\"message\":\"สำเร็จ\",\"data\":[{\"book_id\":1,\"title\":\"Clean Code\",\"isbn\":\"9780132350884\",\"published_year\":2008,\"total_copies\":3,\"author_id\":1,\"author_name\":\"Robert C. Martin\"}]}"
+        }
+      ]
+    },
+    {
+      "name": "2. Get Book By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:3000/api/v1/books/1", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "v1", "books", "1"] }
+      },
+      "response": [
+        {
+          "name": "200 Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\"message\":\"สำเร็จ\",\"data\":{\"book_id\":1,\"title\":\"Clean Code\",\"isbn\":\"9780132350884\",\"published_year\":2008,\"total_copies\":3,\"author_id\":1,\"author_name\":\"Robert C. Martin\",\"categories\":[{\"category_id\":1,\"name\":\"Software Engineering\"}]}}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"ไม่พบข้อมูลหนังสือ\"}}"
+        }
+      ]
+    },
+    {
+      "name": "3. Get External Book Info (Live / Fallback)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:3000/api/v1/books/1/external-info", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "v1", "books", "1", "external-info"] }
+      },
+      "response": [
+        {
+          "name": "200 Live Integration",
+          "status": "OK",
+          "code": 200,
+          "body": "{\"message\":\"ดึงข้อมูลจากบริการภายนอกสำเร็จ\",\"data\":{\"book_id\":1,\"title\":\"Clean Code\",\"isbn\":\"9780132350884\",\"integration_status\":\"LIVE\",\"attempts\":1,\"details\":{\"ISBN:9780132350884\":{\"title\":\"Clean Code\",\"number_of_pages\":464}}}}"
+        },
+        {
+          "name": "200 Fallback Resilient Response",
+          "status": "OK",
+          "code": 200,
+          "body": "{\"message\":\"ดึงข้อมูลจากบริการภายนอกสำเร็จ\",\"data\":{\"book_id\":1,\"title\":\"Clean Code\",\"isbn\":\"9780132350884\",\"integration_status\":\"FALLBACK\",\"attempts\":3,\"details\":{\"isbn\":\"9780132350884\",\"title\":\"ข้อมูลพื้นฐานจากคลังระบบภายใน\",\"publish_date\":\"ไม่ระบุ\",\"notes\":\"External service offline or unreachable, default metadata used\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "4. Create Loan",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"book_id\": 1,\n  \"member_id\": 1,\n  \"loan_date\": \"2026-10-12\",\n  \"due_date\": \"2026-10-26\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/api/v1/loans", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "v1", "loans"] }
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "body": "{\"message\":\"ยืมหนังสือสำเร็จ\",\"data\":{\"loan_id\":1,\"book_id\":1,\"member_id\":1,\"loan_date\":\"2026-10-12\",\"due_date\":\"2026-10-26\"}}"
+        },
+        {
+          "name": "400 Validation Error",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"กรุณาระบุข้อมูลให้ครบถ้วน\"}}"
+        }
+      ]
+    },
+    {
+      "name": "5. Return Book",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"return_date\": \"2026-10-15\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/api/v1/loans/1/return", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "v1", "loans", "1", "return"] }
+      },
+      "response": [
+        {
+          "name": "200 Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\"message\":\"บันทึกการคืนหนังสือสำเร็จ\",\"data\":{\"loan_id\":1,\"return_date\":\"2026-10-15\"}}"
+        }
+      ]
+    },
+    {
+      "name": "6. Get Member Loans",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:3000/api/v1/members/1/loans", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "v1", "members", "1", "loans"] }
+      },
+      "response": [
+        {
+          "name": "200 Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\"message\":\"สำเร็จ\",\"data\":[{\"loan_id\":1,\"loan_date\":\"2026-10-12\",\"due_date\":\"2026-10-26\",\"return_date\":\"2026-10-15\",\"book_id\":1,\"book_title\":\"Clean Code\",\"isbn\":\"9780132350884\"}]}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการห้องสมุด (Library System)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ระบบจัดการห้องสมุดดิจิทัล</h1>
+      <p class="subtitle">Client-Facing Dashboard (นิสิต 67160179)</p>
+      <div class="links">
+        <a href="/api-docs" target="_blank" class="badge-link">เปิดดู Swagger API Docs</a>
+      </div>
+    </header>
+
+    <div id="alert-box" class="alert hidden"></div>
+
+    <main class="grid-layout">
+      <!-- ส่วนที่ 1: รายการหนังสือ -->
+      <section class="card">
+        <div class="card-header">
+          <h2>รายการหนังสือในคลัง</h2>
+          <button id="btn-refresh-books" class="btn btn-secondary">รีเฟรช</button>
+        </div>
+        <div id="books-loading" class="spinner-container hidden">
+          <div class="spinner"></div>
+          <span>กำลังโหลดข้อมูลหนังสือ...</span>
+        </div>
+        <div id="books-list" class="books-grid"></div>
+      </section>
+
+      <!-- ส่วนที่ 2: ฟอร์มยืมหนังสือ -->
+      <section class="card">
+        <h2>แบบฟอร์มยืมหนังสือ (Loan Form)</h2>
+        <form id="loan-form" novalidate>
+          <div class="form-group">
+            <label for="book_id">รหัสหนังสือ (Book ID) *</label>
+            <input type="number" id="book_id" name="book_id" required min="1" placeholder="เช่น 1">
+            <span class="field-error" id="err-book-id"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="member_id">รหัสสมาชิก (Member ID) *</label>
+            <input type="number" id="member_id" name="member_id" required min="1" placeholder="เช่น 1">
+            <span class="field-error" id="err-member-id"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="loan_date">วันที่ยืม *</label>
+            <input type="date" id="loan_date" name="loan_date" required>
+            <span class="field-error" id="err-loan-date"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="due_date">กำหนดส่งคืน *</label>
+            <input type="date" id="due_date" name="due_date" required>
+            <span class="field-error" id="err-due-date"></span>
+          </div>
+
+          <button type="submit" id="btn-submit-loan" class="btn btn-primary">
+            บันทึกการยืมหนังสือ
+          </button>
+        </form>
+      </section>
+
+      <!-- ส่วนที่ 3: คืนหนังสือและตรวจสอบประวัติ -->
+      <section class="card">
+        <h2>จัดการการคืนหนังสือ</h2>
+        <div class="form-group inline-group">
+          <input type="number" id="return_loan_id" placeholder="ระบุ Loan ID ที่ต้องการคืน">
+          <button id="btn-return-book" class="btn btn-warning">บันทึกคืนหนังสือ</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+        <h2>ค้นหาประวัติการยืมของสมาชิก</h2>
+        <div class="form-group inline-group">
+          <input type="number" id="search_member_id" placeholder="ระบุ Member ID">
+          <button id="btn-search-member" class="btn btn-secondary">ดูประวัติ</button>
+        </div>
+        <div id="member-loans-result"></div>
+      </section>
+    </main>
+
+    <!-- Modal สำหรับแสดงข้อมูล External API Metadata -->
+    <div id="modal-external" class="modal hidden">
+      <div class="modal-content">
+        <span id="modal-close" class="modal-close">&times;</span>
+        <h3>ข้อมูลเพิ่มเติมจาก Open Library API</h3>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

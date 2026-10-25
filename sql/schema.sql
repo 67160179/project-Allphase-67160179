@@ -1,0 +1,13 @@
+CREATE DATABASE IF NOT EXISTS library_phase3 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE library_phase3;
+CREATE TABLE IF NOT EXISTS authors (author_id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(200) NOT NULL);
+CREATE TABLE IF NOT EXISTS books (book_id INT PRIMARY KEY AUTO_INCREMENT, title VARCHAR(255) NOT NULL, isbn VARCHAR(20) NOT NULL UNIQUE, published_year INT, total_copies INT NOT NULL DEFAULT 1, author_id INT NOT NULL, FOREIGN KEY (author_id) REFERENCES authors(author_id));
+CREATE TABLE IF NOT EXISTS categories (category_id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100) NOT NULL);
+CREATE TABLE IF NOT EXISTS book_categories (book_id INT NOT NULL, category_id INT NOT NULL, PRIMARY KEY(book_id,category_id), FOREIGN KEY(book_id) REFERENCES books(book_id), FOREIGN KEY(category_id) REFERENCES categories(category_id));
+CREATE TABLE IF NOT EXISTS members (member_id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(200) NOT NULL, email VARCHAR(255) NOT NULL UNIQUE);
+CREATE TABLE IF NOT EXISTS loans (loan_id INT PRIMARY KEY AUTO_INCREMENT, book_id INT NOT NULL, member_id INT NOT NULL, loan_date DATE NOT NULL, due_date DATE NOT NULL, return_date DATE, FOREIGN KEY(book_id) REFERENCES books(book_id), FOREIGN KEY(member_id) REFERENCES members(member_id));
+INSERT IGNORE INTO authors(author_id,name) VALUES (1,'Robert C. Martin'),(2,'Andrew Hunt');
+INSERT IGNORE INTO books(book_id,title,isbn,published_year,total_copies,author_id) VALUES (1,'Clean Code','9780132350884',2008,3,1),(2,'The Pragmatic Programmer','9780201616224',1999,2,2);
+INSERT IGNORE INTO categories(category_id,name) VALUES (1,'Programming'),(2,'Software Engineering');
+INSERT IGNORE INTO book_categories(book_id,category_id) VALUES (1,1),(1,2),(2,1);
+INSERT IGNORE INTO members(member_id,name,email) VALUES (1,'Demo Student','student@example.com'),(2,'Demo Member','member@example.com');

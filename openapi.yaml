@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: Library Management System API
+  description: API สำหรับระบบจัดการห้องสมุด จัดทำขึ้นสำหรับโครงงานระยะที่ 2
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Development Server
+
+paths:
+  /api/v1/books:
+    get:
+      summary: ดึงรายชื่อหนังสือทั้งหมด
+      description: แสดงหนังสือทั้งหมดพร้อมชื่อผู้แต่ง
+      responses:
+        "200":
+          description: ดึงข้อมูลสำเร็จ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: สำเร็จ
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/books/{id}:
+    get:
+      summary: ดึงข้อมูลหนังสือรายเล่ม
+      description: ดึงข้อมูลหนังสือตาม book_id พร้อมรายการหมวดหมู่
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: สำเร็จ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: สำเร็จ
+                  data:
+                    $ref: "#/components/schemas/BookDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/books/{id}/external-info:
+    get:
+      summary: ดึงข้อมูลหนังสือเพิ่มเติมจากบริการภายนอก (Open Library)
+      description: เรียก API ภายนอกพร้อมระบบ Retry, Timeout และ Fallback อัตโนมัติ
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: ได้รับข้อมูลจากระบบภายนอกหรือระบบสำรอง (Fallback)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ดึงข้อมูลจากบริการภายนอกสำเร็จ
+                  data:
+                    type: object
+                    properties:
+                      book_id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: Clean Code
+                      isbn:
+                        type: string
+                        example: "9780132350884"
+                      integration_status:
+                        type: string
+                        enum: [LIVE, FALLBACK]
+                        example: LIVE
+                      attempts:
+                        type: integer
+                        example: 1
+                      details:
+                        type: object
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/loans:
+    post:
+      summary: สมาชิกยืมหนังสือ
+      description: บันทึกข้อมูลการยืมหนังสือใหม่
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - book_id
+                - member_id
+                - loan_date
+                - due_date
+              properties:
+                book_id:
+                  type: integer
+                  example: 1
+                member_id:
+                  type: integer
+                  example: 1
+                loan_date:
+                  type: string
+                  format: date
+                  example: "2026-10-12"
+                due_date:
+                  type: string
+                  format: date
+                  example: "2026-10-26"
+      responses:
+        "201":
+          description: ยืมหนังสือสำเร็จ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ยืมหนังสือสำเร็จ
+                  data:
+                    $ref: "#/components/schemas/LoanRecord"
+        "400":
+          description: ข้อมูลไม่ครบถ้วน
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/loans/{id}/return:
+    patch:
+      summary: คืนหนังสือ
+      description: บันทึกวันที่คืนหนังสือสำหรับรายการยืมที่ยังค้างอยู่
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                return_date:
+                  type: string
+                  format: date
+                  example: "2026-10-15"
+      responses:
+        "200":
+          description: บันทึกการคืนหนังสือสำเร็จ
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/members/{id}/loans:
+    get:
+      summary: ดึงประวัติการยืมของสมาชิก
+      description: แสดงรายการหนังสือทั้งหมดที่สมาชิกรายนั้นเคยหรือกำลังยืมอยู่
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: ดึงข้อมูลสำเร็จ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: สำเร็จ
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        loan_id:
+                          type: integer
+                        book_id:
+                          type: integer
+                        book_title:
+                          type: string
+                        isbn:
+                          type: string
+                        loan_date:
+                          type: string
+                        due_date:
+                          type: string
+                        return_date:
+                          type: string
+                          nullable: true
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        book_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Clean Code
+        isbn:
+          type: string
+          example: "9780132350884"
+        published_year:
+          type: integer
+          example: 2008
+        total_copies:
+          type: integer
+          example: 5
+        author_id:
+          type: integer
+          example: 1
+        author_name:
+          type: string
+          example: Robert C. Martin
+
+    BookDetail:
+      allOf:
+        - $ref: "#/components/schemas/Book"
+        - type: object
+          properties:
+            categories:
+              type: array
+              items:
+                type: object
+                properties:
+                  category_id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: คอมพิวเตอร์และเทคโนโลยี
+
+    LoanRecord:
+      type: object
+      properties:
+        loan_id:
+          type: integer
+          example: 10
+        book_id:
+          type: integer
+          example: 1
+        member_id:
+          type: integer
+          example: 1
+        loan_date:
+          type: string
+          example: "2026-10-12"
+        due_date:
+          type: string
+          example: "2026-10-26"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: กรุณาระบุข้อมูลให้ครบถ้วน
+
+  responses:
+    NotFound:
+      description: ไม่พบทรัพยากร
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: NOT_FOUND
+              message: ไม่พบข้อมูลที่ต้องการ
+    InternalError:
+      description: เซิร์ฟเวอร์ทำงานผิดพลาด
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: เกิดข้อผิดพลาดในระบบ
